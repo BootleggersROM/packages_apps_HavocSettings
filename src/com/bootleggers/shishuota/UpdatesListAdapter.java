@@ -101,6 +101,8 @@ public class UpdatesListAdapter extends RecyclerView.Adapter<UpdatesListAdapter.
         private ProgressBar mProgressBar;
         private TextView mProgressText;
 
+        private TextView mUpdateTitle;
+
         public ViewHolder(final View view) {
             super(view);
             mAction = (Button) view.findViewById(R.id.update_action);
@@ -113,6 +115,8 @@ public class UpdatesListAdapter extends RecyclerView.Adapter<UpdatesListAdapter.
 
             mProgressBar = (ProgressBar) view.findViewById(R.id.progress_bar);
             mProgressText = (TextView) view.findViewById(R.id.progress_text);
+
+            mUpdateTitle = (TextView) view.findViewById(R.id.update_card_title);
         }
     }
 
@@ -203,6 +207,7 @@ public class UpdatesListAdapter extends RecyclerView.Adapter<UpdatesListAdapter.
 
     private void handleNotActiveStatus(ViewHolder viewHolder, UpdateInfo update) {
         final String downloadId = update.getDownloadId();
+        boolean isOld = false;
         if (mUpdaterController.isWaitingForReboot(downloadId)) {
             viewHolder.itemView.setOnLongClickListener(
                     getLongClickListener(update, false, viewHolder.mBuildDate));
@@ -213,6 +218,7 @@ public class UpdatesListAdapter extends RecyclerView.Adapter<UpdatesListAdapter.
             setButtonAction(viewHolder.mAction,
                     Utils.canInstall(update) ? Action.INSTALL : Action.DELETE,
                     downloadId, !isBusy());
+            isOld = true;
         } else if (!Utils.canInstall(update)) {
             viewHolder.itemView.setOnLongClickListener(
                     getLongClickListener(update, false, viewHolder.mBuildDate));
@@ -233,6 +239,12 @@ public class UpdatesListAdapter extends RecyclerView.Adapter<UpdatesListAdapter.
                         R.string.update_summary, mActivity.getString(
                         R.string.update_new_release, SystemProperties.get(Constants.PROP_DEVICE)), mActivity.getString(
                         R.string.update_new_release_small)));
+        if (isOld) {
+            viewHolder.mUpdateTitle.setText(R.string.update_old_title);
+            viewHolder.mBuildSummary.setText(R.string.update_old_summary);
+            viewHolder.mChangelog.setVisibility(View.GONE);
+        }
+
         /**if (Utils.isBigRelease()) {
             viewHolder.mBuildVersion.setVisibility(View.VISIBLE);
             viewHolder.mBuildVersion.setText(Utils.getReleaseVersion(update.getName()));
