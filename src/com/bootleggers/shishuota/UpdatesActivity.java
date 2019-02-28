@@ -227,12 +227,16 @@ public class UpdatesActivity extends UpdatesListActivity {
         Log.d(TAG, "Adding remote updates");
         UpdaterController controller = mUpdaterService.getUpdaterController();
         boolean newUpdates = false;
+        boolean isNew = false;
 
         List<UpdateInfo> updates = Utils.parseJson(jsonFile, true);
         List<String> updatesOnline = new ArrayList<>();
         for (UpdateInfo update : updates) {
             newUpdates |= controller.addUpdate(update);
             updatesOnline.add(update.getDownloadId());
+            if (Utils.canInstall(update)) {
+                isNew = true;
+            }
         }
         controller.setUpdatesAvailableOnline(updatesOnline, true);
 
@@ -257,8 +261,13 @@ public class UpdatesActivity extends UpdatesListActivity {
                 updateIds.add(update.getDownloadId());
                 ((TextView) findViewById(R.id.header_update_release_date)).setText("(" + Utils.getParsedDate(update.getBuildDate(), false) + ")");
             }
-            ((TextView) findViewById(R.id.header_update_status)).setText(R.string.header_updates_new_build);
-            findViewById(R.id.header_update_release_date).setVisibility(View.VISIBLE);
+            if (isNew) {
+                ((TextView) findViewById(R.id.header_update_status)).setText(R.string.header_updates_new_build);
+                findViewById(R.id.header_update_release_date).setVisibility(View.VISIBLE);
+            } else {
+                ((TextView) findViewById(R.id.header_update_status)).setText(R.string.header_updates_no_update);
+                findViewById(R.id.header_update_release_date).setVisibility(View.GONE);
+            }
             /* Example till this is working */
             mAdapter.setData(updateIds);
             mAdapter.notifyDataSetChanged();
